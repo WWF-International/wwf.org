@@ -27,10 +27,12 @@
 
         <br /><br /><br />
         <h3>Geocode an Address</h3>
-        <input type="text" name="address" id="address" /><button id="geocode">Geocode</button><br />
+        <p>Enter and office address (or name of the city) to get Lat/Lng values to use in the Google Docs Spreadsheet.</p>
+        <input type="text" name="address" id="address" /><button id="geocode">Geocode</button><br /><br />
         <label>Lat: </label><input type="text" name="outputlat" id="outputlat" /><br />
         <label>Lng: </label><input type="text" name="outputlng" id="outputlng" /><br />
-        <button id="testmap">Test on map</button>
+        <p><button id="testmap">Test on map</button> &laquo; Use this to test the coordinates are in the right place:</p>
+        
         <br /><br /><br /><br /><br />
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
@@ -172,23 +174,24 @@
 
             }
 
-            $("#geocode").click(function() {                
-                geocoder = new google.maps.Geocoder();
+            $("#geocode").click(function() {          
 
+                geocoder = new google.maps.Geocoder();
                 address = $("#address").val();
+
                 geocoder.geocode( { 'address': address}, function(results, status) {
                             if (status == google.maps.GeocoderStatus.OK) {      
                                 // console.log('=========================')
                                 // console.log(results[0].formatted_address)
                                 // console.log('-------------------------')        
-                                // console.log("Lat: " + results[0].geometry.location.Ya);      
-                                // console.log("Lon: " + results[0].geometry.location.Za);
+                                // console.log("Lat: " + results[0].geometry.location.ob);      
+                                // console.log("Lon: " + results[0].geometry.location.pb);
                                 // console.log('=========================')
                                 // console.log(' ')
                                 // console.log(' ')
 
-                                $("#outputlat").val(results[0].geometry.location.Ya);
-                                $("#outputlng").val(results[0].geometry.location.Za);
+                                $("#outputlat").val(results[0].geometry.location.ob);
+                                $("#outputlng").val(results[0].geometry.location.pb);
                             } else {
                                 alert("Geocode was not successful for the following reason: " + status);
                             }
