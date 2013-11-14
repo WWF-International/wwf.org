@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>None</title>
+        <meta name="description" content="">
+        <meta name="robots" content="noindex">
+
+        <style type="text/css">
+            textarea {
+                width: 90%;
+                height: 350px;
+            }
+        </style>
+
+    </head>
+    <body>
+        <p>This is the latest data from <a href="https://docs.google.com/spreadsheet/ccc?key=0Ah5LRWIqRsKtdHdNQ21odHdSdFR3bEVvZDF5TWR0ZFE#gid=0" target="_blank">the Google Doc</a>.</p>
+        <h3>JSON List</h3>
+        <textarea id="json_list">
+        </textarea>
+
+        <h3>Regular List</h3>
+        <textarea id="regular_list">
+        </textarea>
+
+        <br /><br /><br />
+        <h3>Geocode an Address</h3>
+        <input type="text" name="address" id="address" /><button id="geocode">Geocode</button><br />
+        <label>Lat: </label><input type="text" name="outputlat" id="outputlat" /><br />
+        <label>Lng: </label><input type="text" name="outputlng" id="outputlng" /><br />
+        <button id="testmap">Test on map</button>
+        <br /><br /><br /><br /><br />
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.2.min.js"><\/script>')</script>   
+
+
+        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDU6T2Pdj0jwzNTtgEW8PtFsliCQt1vHjs&sensor=true"></script>
+        
+        <script type="text/javascript">
+
+            function dataRefresh(root) {
+
+                var feed = root.feed;
+                var entries = feed.entry || [];
+                var html = ['var mapData = { "markers": [\n\n'];
+
+                // generate simpler JSON
+                for (var i = 0; i < entries.length; ++i) {
+                    
+                    var entry = entries[i];
+                    var title = (entry.title.type == 'html') ? entry.title.$t : escape(entry.title.$t);
+                    title = decodeURIComponent(title);
+
+                    temp_array = entry.content.$t.split(",");
+                    split_items_array = new Array();
+
+                    //console.log(temp_array);
+
+                    for (var j = 0; j < temp_array.length; j++) {
+                        this_chunk = temp_array[j];
+                        this_chunk = this_chunk.trim();
+                        separator_loc = this_chunk.indexOf(":"); // : appears in URLs too so only want the first one
+
+                        split_items_array[this_chunk.substring(0, separator_loc)] = this_chunk.substring(separator_loc+2, this_chunk.length);
+                    }
+
+                    // console.log(split_items_array);
+                    // console.log(split_items_array.length);
+                    // console.log(split_items_array['url']);
+
+
+                    highlight_val = (split_items_array['highlight'] == "Y") ? "true" : "false";
+                    highlight = '"highlight": "' + highlight_val + '",\n';
+
+                    name = '"Name": "' + title + '",\n';
+
+                    local_name_val = split_items_array['wwflocalname'];
+                    if (split_items_array['wwflocalnametwo']) {
+                        local_name_val += " / " + split_items_array['wwflocalnametwo'];
+                    };
+                    local_name = '"LocalName": "' + local_name_val + '",\n';
+                    lat = '"Lat": ' + split_items_array['lat'] + ',\n';
+                    lng = '"Lng": ' + split_items_array['lng'] + ',\n';
+                    url = '"URL": "' + split_items_array['urlwithreferer'] + '",\n';
+                    readable_url = '"ReadableURL": "' + split_items_array['readableurl'] + '",\n';
+                    
+                    if (split_items_array['urlwithreferertwo']) {
+                        url_2 = '"URL2": "' + split_items_array['urlwithreferertwo'] + '",\n';
+                        readable_url_2 = '"ReadableURL2": "' + split_items_array['readableurltwo'] + '",\n';
+                    } else {
+                        url_2 = "";
+                        readable_url_2 = "";
+                    }
+
+                    // pre format the links to save concatenation on every page load
+                    link_html = '<a href=\''+ split_items_array['urlwithreferer'] +'\'>'+split_items_array['readableurl']+'</a>';
+                    if (url_2 != "") {
+                        link_html += ' / <a href=\''+ split_items_array['urlwithreferertwo'] +'\'>'+split_items_array['readableurltwo']+'</a>';
+                    };
+                    link = '"Link": "' + link_html + '",\n';
+                    
+                    countrycode = '"CountryCode": "' + split_items_array['countrycode'] + '"'; // no comma for last
+
+                    endcomma = ',';
+                    if (i == entries.length-1) {
+                        endcomma = '';
+                    };
+
+                  html.push('{\n', highlight, name, local_name, lat, lng, url, readable_url, url_2, readable_url_2, link, countrycode, '\n}', endcomma, '\n');
+                }
+
+                html.push('\n]};');
+                document.getElementById("json_list").innerHTML = html.join("");
+
+
+                var COLUMNS = 3;
+                break_after = Math.floor(entries.length / COLUMNS);
+                break_after = break_after + 1;
+
+                var html2 = ['<ul>\n'];
+                // generate UL
+                for (var i = 0; i < entries.length; ++i) {
+                    
+                    var entry = entries[i];
+                    var title = (entry.title.type == 'html') ? entry.title.$t : escape(entry.title.$t);
+                    title = decodeURIComponent(title);
+
+                    temp_array = entry.content.$t.split(",");
+                    split_items_array = new Array();
+
+                    for (var j = 0; j < temp_array.length; j++) {
+                        this_chunk = temp_array[j];
+                        this_chunk = this_chunk.trim();
+                        separator_loc = this_chunk.indexOf(":"); // : appears in URLs too so only want the first one
+
+                        split_items_array[this_chunk.substring(0, separator_loc)] = this_chunk.substring(separator_loc+2, this_chunk.length);
+                    }
+
+                    
+                    item_tag = (split_items_array['highlight'] == "Y") ? "<li class='highlight'>" : "<li>";
+                    
+                    local_name = split_items_array['wwflocalname'];
+                    url = split_items_array['urlwithreferer'];
+                    
+                    a_tag = "<a href='"+url+"'>";
+                    flag = "<i class='flag " + split_items_array['countrycode'].toLowerCase() + "'></i>";
+                    
+                    ul_splitter = ''
+                    
+                        if (((i+1)%break_after) == 0) {
+                            ul_splitter = "</ul>\n<ul>\n";
+                        }
+                    
+                    
+
+                  html2.push(item_tag, flag, a_tag, local_name, '</a></li>\n', ul_splitter);
+
+                  if (split_items_array['urlwithreferertwo']) {
+                    local_name_2 = split_items_array['wwflocalnametwo'];
+                    url_2 = split_items_array['urlwithreferertwo'];
+                    a_tag_2 = "<a href='"+url_2+"'>";
+
+                    html2.push(item_tag, flag, a_tag_2, local_name_2, '</a></li>\n', ul_splitter);
+                  }
+
+                }
+                html2.push('\n</ul>');
+                document.getElementById("regular_list").innerHTML = html2.join("");
+
+            }
+
+            $("#geocode").click(function() {                
+                geocoder = new google.maps.Geocoder();
+
+                address = $("#address").val();
+                geocoder.geocode( { 'address': address}, function(results, status) {
+                            if (status == google.maps.GeocoderStatus.OK) {      
+                                // console.log('=========================')
+                                // console.log(results[0].formatted_address)
+                                // console.log('-------------------------')        
+                                // console.log("Lat: " + results[0].geometry.location.Ya);      
+                                // console.log("Lon: " + results[0].geometry.location.Za);
+                                // console.log('=========================')
+                                // console.log(' ')
+                                // console.log(' ')
+
+                                $("#outputlat").val(results[0].geometry.location.Ya);
+                                $("#outputlng").val(results[0].geometry.location.Za);
+                            } else {
+                                alert("Geocode was not successful for the following reason: " + status);
+                            }
+                        });
+            });
+
+            $("#testmap").click(function() {    
+                url = "http://maps.google.co.uk?z=5&q=";
+                url += $("#outputlat").val();
+                url += ",";
+                url += $("#outputlng").val();
+                window.open(url, '_blank');
+                window.focus();
+            });   
+
+        </script>
+
+        <script src="https://spreadsheets.google.com/feeds/list/0Ah5LRWIqRsKtdHdNQ21odHdSdFR3bEVvZDF5TWR0ZFE/od6/public/basic?alt=json-in-script&callback=dataRefresh">
+        </script>
+
+
+        <script type="text/javascript">
+            // CountryCodes = ['AR', 'AM', 'AT', 'AU', 'BE', 'BT', 'BO', 'BR', 'BG', 'KH', 'CA', 'CL', 'CN', 'CO', 'HR', 'DK', 'EU', 'FI', 'FR', 'DE', 'GR', 'HK', 'HU', 'IN', 'ID', 'IT', 'JP', 'LA', 'MG', 'MY', 'MX', 'MN', 'MZ', 'NP', 'NL', 'NZ', 'NO', 'PK', 'PG', 'PY', 'PE', 'PH', 'PL', 'PT', 'RO', 'RU', 'SN', 'RS', 'SG', 'ZA', 'ES', 'SR', 'SE', 'CH', 'TZ', 'TH', 'TR', 'UA', 'AE', 'GB', 'US', 'VN'];
+
+            // AllCountryNames = ['Argentina', 'Armenia', 'Austria', 'Australia', 'Belgium', 'Bhutan', 'Bolivia', 'Brasil', 'Bulgaria', 'Cambodia', 'Canada', 'Chile', 'China', 'Colombia', 'Croatia', 'Denmark', 'European Policy Office', 'Finland', 'France', 'Germany', 'Greece', 'Hong Kong', 'Hungary', 'India', 'Indonesia', 'Italy', 'Japan', 'Laos', 'Madagascar', 'Malaysia', 'Mexico', 'Mongolia', 'Mozambique', 'Nepal', 'Netherlands', 'New Zealand', 'Norway', 'Pakistan', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Romania', 'Russia', 'Senegal', 'Serbia', 'Singapore', 'South Africa', 'Spain', 'Suriname', 'Sweden', 'Switzerland', 'Tanzania', 'Thailand', 'Turkey', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Vietnam']
+
+            // CountryNames = []
+
+            // geocoder = new google.maps.Geocoder();
+
+            // for (var i = 0; i < CountryNames.length; i++) {
+                    
+                        
+                        
+                    // geocoder.geocode( { 'address': CountryNames[i]}, function(results, status) {
+                    //     if (status == google.maps.GeocoderStatus.OK) {      
+                    //         console.log('=========================')
+                    //         console.log(results[0].formatted_address)
+                    //         console.log('-------------------------')        
+                    //         console.log("Lat: " + results[0].geometry.location.Ya);      
+                    //         console.log("Lon: " + results[0].geometry.location.Za);
+                    //         console.log('=========================')
+                    //         console.log(' ')
+                    //         console.log(' ')
+                    //     } else {
+                    //         console.log("Geocode was not successful for the following reason: " + status);
+                    //     }
+                    // });
+
+
+
+                    
+
+            //     };
+
+            
+
+        </script>
+    </body>
+</html>

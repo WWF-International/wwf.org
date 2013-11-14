@@ -1,0 +1,15 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    Adam Lofting -- Web design and build -- @adamlofting
+
+# THANKS
+
+    The millions of people who support WWF around the world.
+
+# TECHNOLOGY COLOPHON
+
+    HTML5, CSS3
+    jQuery, Bootstrap Grid
